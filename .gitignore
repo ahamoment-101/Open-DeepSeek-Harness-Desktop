@@ -1,0 +1,15 @@
+node_modules/
+dist/
+release/
+.zcode/
+.DS_Store
+*.log
+
+# ── signing / notarization secrets — NEVER commit ──
+*.p12
+*.p8
+*.pem
+*.mobileprovision
+.env
+.env.*
+!*.env.example

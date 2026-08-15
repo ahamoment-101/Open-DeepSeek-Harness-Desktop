@@ -1,0 +1,39 @@
+appId: com.dshdesktop.app
+productName: dsh-desktop
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - package.json
+  - "!**/*.map"
+
+# No asar: the spawned `dsh` child resolves its plugin packages through
+# `healProfilesModuleFallback`, which symlinks $DSH_HOME/profiles/node_modules/*
+# at the installation — a symlink into a virtual asar path does not resolve.
+# Unpacked real files make the child's module resolution work.
+asar: false
+
+mac:
+  category: public.app-category.developer-tools
+  target:
+    - target: dmg
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: true
+
+protocols:
+  - name: dsh-desktop
+    schemes:
+      - dsh-desktop
+
+dmg:
+  title: dsh-desktop
+
+artifactName: ${productName}-${version}-${arch}.${ext}
+
+publish:
+  provider: github
