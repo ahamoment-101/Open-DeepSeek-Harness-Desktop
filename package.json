@@ -14,9 +14,11 @@
   },
   "dependencies": {
     "@deepseek-ai/dsh": "0.1.0-rc.6",
-    "electron-updater": "^6.8.9"
+    "electron-updater": "^6.8.9",
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.20.1",
     "electron": "^43.4.0",
     "electron-builder": "^26.15.3",

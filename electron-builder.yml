@@ -6,6 +6,7 @@ directories:
 
 files:
   - dist/**/*
+  - renderer/**/*
   - package.json
   - "!**/*.map"
 

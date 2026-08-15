@@ -8,6 +8,8 @@ import { setPendingBadge, showNotification } from './native'
 import { registerDeepLink } from './deep-link'
 import { initUpdater } from './updater'
 import { installDockIcon } from './icon'
+import { createT2Window } from './t2/window'
+import { registerT2Ipc } from './t2/ipc'
 
 // Redirect console output to a file first: a double-click launch has no
 // visible console, and the log is the only way to diagnose startup failures.
@@ -17,6 +19,18 @@ let host: HostProcess | null = null
 let mainWindow: BrowserWindow | null = null
 let monitor: HostStateMonitor | null = null
 let quitting = false
+let t2Window: BrowserWindow | null = null
+
+function openT2(): void {
+  if (t2Window !== null && !t2Window.isDestroyed()) {
+    t2Window.focus()
+    return
+  }
+  t2Window = createT2Window()
+  t2Window.on('closed', () => {
+    t2Window = null
+  })
+}
 
 async function boot(): Promise<void> {
   try {
@@ -28,7 +42,6 @@ async function boot(): Promise<void> {
     mainWindow.on('closed', () => {
       mainWindow = null
     })
-    installMenu()
 
     monitor = new HostStateMonitor(url)
     monitor.on('pending-change', (count: number) => setPendingBadge(count))
@@ -44,6 +57,9 @@ async function boot(): Promise<void> {
 
 app.whenReady().then(() => {
   installDockIcon()
+  registerT2Ipc()
+  installMenu(openT2)
+  if (process.env.DSH_OPEN_T2 === '1') openT2()
 
   registerDeepLink(() => {
     if (mainWindow !== null) {
