@@ -7,6 +7,7 @@ import { HostStateMonitor } from './state-monitor'
 import { setPendingBadge, showNotification } from './native'
 import { registerDeepLink } from './deep-link'
 import { initUpdater } from './updater'
+import { installDockIcon } from './icon'
 
 // Redirect console output to a file first: a double-click launch has no
 // visible console, and the log is the only way to diagnose startup failures.
@@ -42,6 +43,8 @@ async function boot(): Promise<void> {
 }
 
 app.whenReady().then(() => {
+  installDockIcon()
+
   registerDeepLink(() => {
     if (mainWindow !== null) {
       if (mainWindow.isMinimized()) mainWindow.restore()

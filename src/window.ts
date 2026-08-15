@@ -1,4 +1,5 @@
 import { BrowserWindow, shell } from 'electron'
+import { resolveIconPath } from './icon'
 
 const ALLOWED_HOSTNAMES = new Set(['127.0.0.1', 'localhost'])
 
@@ -21,6 +22,7 @@ export function createMainWindow(url: string): BrowserWindow {
     minWidth: 720,
     minHeight: 480,
     title: 'dsh desktop',
+    icon: resolveIconPath() ?? undefined,
     backgroundColor: '#1e1e1e',
     show: false,
     webPreferences: {
