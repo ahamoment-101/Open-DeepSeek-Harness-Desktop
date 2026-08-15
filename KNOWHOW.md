@@ -246,8 +246,9 @@ Host 侧 `toFetchHandler(api)`（`fetch/handler.ts`）把 `ApiProxy` 实现变�
 
 ### 产品决策（已锁定）
 - **壳技术**：Electron（复用 React UI + node host；Tauri 会推翻三处 JS seam）。
-- **进程模型**：host 跑在 Electron **主进程内（in-process）**，`runProfile()` boot + `ipcMain.handle` 桥；子进程 host 留作硬化选项。
-- **首发平台**：**macOS 优先**（签名/公证/自动更新先做好），Win/Linux 后扩。
+- **进程模型（实际落地）**：**简单路线（薄壳）**——主进程 spawn `dsh web --port 0`（loopback 随机端口）+ 窗口 `loadURL`。**不做真 IPC 去端口**（探索确认：与「不 fork 跟上游」战略冲突、用户无感，已 defer；详见 IMPLEMENTATION.md §7）。
+- **首发平台**：**macOS 优先**，Win/Linux 后扩。
+- **签名/公证（已确认非必需）**：无 Apple 证书也能打未签名 dmg 自用/开源分发（首次右键「打开」即可，功能零差别）。只有「官方签名发布」才需证书，走 CI secrets、不进仓库。**无开发者账户完全不影响开源。**
 - **账号**：**v1 纯本地无账号**（本地 API key、本地会话存储）；云同步留 v2 或自托管。
 
 ### 能力分层（白拿 vs 要建）
@@ -264,13 +265,29 @@ Host 侧 `toFetchHandler(api)`（`fetch/handler.ts`）把 `ApiProxy` 实现变�
 - ✅ 在：Electron 壳 + 三处 seam + macOS 原生（窗口/菜单/托盘/通知/dialog/拖拽/open-in-OS）+ onboarding + 完整 Web UI + 本地会话 + dmg/签名/自动更新。
 - ⏸️ 后置：云同步/账号、Win/Linux、子进程 host 硬化、多窗口、深度 diff 打磨。
 
-### 里程碑
-- **M0 实证验证**：clone → `pnpm install && build && dsh web` 跑通，坐实 UI 现状与三处 seam 假设。
-- **M1 三处 seam 施工（最高风险）**：① 新 `dsh-desktop` bundle（fork web-app 换 ~5 行）；② `ElectronIpcApiClient` + IPC 版 `createWebConnectionRpc`；③ 模块加载 IPC（`graph()` + `clientPath(id)` + `loadBundle`）；④ Electron 主进程串起来，渲染层 `file://` + 覆盖 `BootSeams`。验收：窗口里跑出 Web UI，发消息 agent 能读写文件。
-- **M2 macOS 原生**：菜单/快捷键、原生 dialog、托盘/Dock、通知、拖拽、open-in-OS、窗口状态持久化。
-- **M3 产品化**：onboarding（key→模型→目录）、`dsh-desktop` bundle 固化、错误/崩溃恢复、深色跟随系统。
-- **M4 分发**：dmg + 签名/公证 + 自动更新 + 崩溃上报。
-- **M5（后置）**：云同步、Win/Linux、多窗口、diff 深度打磨。
+### 里程碑（状态更新 2026-08-15）
+- ✅ **M0 实证验证**：build/run/RPC/manifest/npm 包导出全部跑通（详见 §11）。
+- ✅ **M1 薄壳**：spawn `dsh web --port 0` + 窗口 loadURL + 生命周期（`src/host.ts`/`window.ts`/`main.ts`）。**三处 seam（真 IPC）已 defer**——探索确认其与「不 fork 跟上游」战略冲突且用户无感。
+- ✅ **M2 macOS 原生**：菜单、Dock 徽标/通知（订阅 WebSocket 下行流）、深链 `dsh-desktop://`、自动更新（packaged 且有 publish 配置才检查）。**已由用户在打包版验证**。
+- ✅ **M3 产品化**：key 自管理（spawn 时 scrub 环境变量）、主进程日志文件（`~/Library/Application Support/dsh-desktop/logs/main.log`）、窗口兜底显示、鲸鱼图标（用户提供，打包生效）、updater 噪音修复。
+- ✅ **M4 分发（无证书版）**：`pnpm dist` 出未签名 dmg（Gatekeeper 右键「打开」）；**签名/公证确认可选**（无账户也能用）。CI `release.yml` 为维护者签名版预留（不 push tag 不触发）。
+- ✅ **终端 node-pty**：打包版实测 OK（electron-builder 自动重编到 Electron ABI，能真开 shell）。
+- ⏸️ **M5（后置/T2）**：云同步、Win/Linux、多窗口、diff 打磨、插件生态（T2）。
+
+---
+
+## 9.1 实现落点与仓库（2026-08-15）
+
+- **Git 仓库**：`git@github.com:ahamoment-101/dsp_Evolving_desktop.git`（main 分支，2 commits，与远端同步）。
+- **项目结构**：`src/`（main/host/window/menu/log/native/state-monitor/deep-link/updater/icon）、`electron-builder.yml`、`.npmrc`、`build/`（鲸鱼图标 + entitlements）、`.github/workflows/release.yml`、`README.md`/`IMPLEMENTATION.md`/`KNOWHOW.md`。
+- **打包三坑（已解决，详见 IMPLEMENTATION.md §7）**：
+  1. `.npmrc node-linker=hoisted` —— pnpm 符号链接会把 peer 依赖（如 `@deepseek-ai/cordis-plugin-*`）丢出包。
+  2. spawn 加 `--expose-internals` —— dsh 的 config-watch HMR 服务需要 `ctx.loader.internal`（dev Node 22 不报、packaged Node 24 报）。
+  3. `asar: false` —— dsh 插件解析靠 `healProfilesModuleFallback` 符号链接，指向 asar 虚拟路径会失效。
+- **进程/ABI**：dev 用系统 Node；packaged 用 `ELECTRON_RUN_AS_NODE` + `--expose-internals`；原生模块（node-pty/koffi）由 electron-builder 打包时自动重编到 Electron ABI（已实测终端可用）。
+- **key 自管理**：spawn 时 scrub `*_KEY/*_TOKEN/*_SECRET/*_PASSWORD` 与 `DSH_*`（镜像 harness `scrubbedParentEnv`）；key 唯一来源 = `~/.dsh/.credentials.yaml`（UI「设置→模型」写入）。
+- **日志**：`~/Library/Application Support/dsh-desktop/logs/main.log`（双击启动排障唯一途径；窗口有 5s 兜底显示）。
+- **文档分工**：`IMPLEMENTATION.md` = 施工图 + 踩坑明细（T1 落地真相）；`README.md` = 开源用户用法（自建包流程、无证书说明）。
 
 ---
 
@@ -337,19 +354,20 @@ Host 侧 `toFetchHandler(api)`（`fetch/handler.ts`）把 `ApiProxy` 实现变�
 - [x] 施工图已产出：`IMPLEMENTATION.md`（Phase1 薄壳 → Phase2 三处 seam → Phase3 原生+打包）。
 - [x] **T1 薄壳已实现并冒烟验证（2026-08-15）**：`src/host.ts` spawn `dsh web --port 0` → 解析 URL → 窗口 `did-finish-load` 成功。关键坑：pnpm 10 需 `onlyBuiltDependencies` 放行 electron/node-pty/koffi；packaged 用 `ELECTRON_RUN_AS_NODE` + electron-rebuild。详见 `IMPLEMENTATION.md` §7。
 
-### 待验证（下一步要亲自确认）
-- [ ] `release:pack` / `python/sdk-runtime` 单 exe 打包链能否直接产出 host 二进制（未验证）。
-- [ ] Phase 2 的 `connection`/`modules` node half 去 webServer 依赖：用「IPC 版 webServer 桩」还是 patch/fork 这两个包（M1b 实测后定）。
-- [ ] 走 IPC 后信任栅栏/认证如何设计（Phase1 薄壳仍有「本机任意进程可 curl 127.0.0.1:port」的暴露面，Phase2 换 IPC 消除）。
+### 待验证 / 已关闭（T1 已闭环 2026-08-15）
+- ✅ `release:pack` / single-exe 打包链：**不再需要**——T1 走 Electron + `dsh` npm 依赖，不依赖该链。
+- ✅ Phase 2 三处 seam（真 IPC）：**已 defer 并关闭**——与「不 fork 跟上游」战略冲突、用户无感（决策见 §9）。
+- ✅ 走 IPC 后信任栅栏：**不适用**——薄壳方案保留 loopback HTTP；`127.0.0.1` 仅本机可达，风险可忽略。
+- ⏳ **T2 前置（未做、不阻塞）**：Win/Linux、云同步、多窗口、diff 打磨、插件生态（T2 阶段再启动）。
 
 ---
 
-## 12. 下一步验证清单（写代码前）
+## 12. 下一步方向（T1 已闭环，2026-08-15 更新）
 
-1. 克隆仓库 → `pnpm install` → `pnpm run build` → `pnpm dsh web`，实测 UI（含原生目录选择器、`host.openPath`、PTY 终端）。
-2. 精读 `AbstractApiClient` 基类与浏览器/in-process 两个 carrier 实现，产出 IPC 子类继承清单。
-3. 评估打包链，确认 host 二进制能否被 Electron 主进程 spawn。
-4. 确认上游迭代节奏（release 频率），决定"跟随 vs 锁定版本"策略。
+T1（对已有工程的 UI 封装）已全部完成并验证。接下来的方向：
+1. **T2 插件生态（主方向）**：插件市场/安装器、`cordis.patch.yml` 可视化编辑器、preset 作者工具、skill 库、本地记忆——让用户造插件、本地越用越聪明。
+2. **上游跟踪**：`@deepseek-ai/dsh` 已锁 `0.1.0-rc.6`；上游在动，升级时走显式验证（dev + 打包各跑一遍）。
+3. **可选扩展**：Win/Linux、云同步、多窗口、diff 深度打磨、onboarding 体验完善。
 
 ---
 
