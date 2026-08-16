@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dsh Desktop</title>
+  <link rel="stylesheet" href="tokens.css" />
+  <style>
+    .pane { height: 100%; }
+    .pane.hidden { display: none; }
+
+    /* 首页 web 嵌套 */
+    #pane-home { padding: 0; }
+    #dsh-web { width: 100%; height: 100%; border: none; display: flex; }
+
+    /* Agent 列表 */
+    .page { max-width: 960px; margin: 0 auto; padding: 34px 40px 60px; }
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+    .page-title { font-size: 22px; font-weight: 650; letter-spacing: -0.01em; }
+    .page-sub { font-size: 13px; color: var(--text-2); margin-top: 5px; }
+
+    .agent-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .agent-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 15px 18px;
+      background: var(--surface); border: 1px solid var(--border-soft);
+      border-radius: var(--r-lg); cursor: pointer;
+      box-shadow: var(--shadow-card);
+      transition: border-color .12s, background .12s;
+    }
+    .agent-row:hover { border-color: var(--border); }
+
+    .agent-glyph {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      background: var(--surface-3); display: flex; align-items: center; justify-content: center;
+    }
+    .agent-glyph svg { color: var(--text-2); }
+
+    .agent-main { flex: 1; min-width: 0; }
+    .agent-top { display: flex; align-items: center; gap: 10px; }
+    .agent-name { font-size: 14px; font-weight: 600; }
+    .agent-id { font-family: var(--mono); font-size: 12px; color: var(--text-3); }
+    .agent-desc { font-size: 12.5px; color: var(--text-2); margin-top: 3px; }
+
+    .agent-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .icon-btn {
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      border-radius: var(--r-md); border: 1px solid transparent; background: transparent;
+      color: var(--text-3); cursor: pointer;
+    }
+    .icon-btn:hover { background: var(--surface-3); color: var(--text); }
+    .icon-btn.danger:hover { background: var(--danger-soft); color: var(--danger); }
+
+    .empty {
+      display: none; flex-direction: column; align-items: center; gap: 14px;
+      padding: 70px 20px; text-align: center;
+    }
+    .empty.show { display: flex; }
+    .empty .ring {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: var(--surface-2); border: 1px dashed var(--border);
+      display: flex; align-items: center; justify-content: center; color: var(--text-3);
+    }
+    .empty .t { font-size: 14px; color: var(--text); font-weight: 600; }
+    .empty .s { font-size: 12.5px; color: var(--text-2); max-width: 340px; }
+
+    /* 新建 / 复制 modal */
+    #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 10; }
+    #modal.hidden { display: none; }
+    .modal-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+      padding: 20px; width: 420px; display: flex; flex-direction: column; gap: 12px;
+      box-shadow: var(--shadow-node);
+    }
+    .modal-box h2 { margin: 0; font-size: 16px; }
+    .modal-box label { display: flex; flex-direction: column; gap: 4px; color: var(--text-2); font-size: 12px; }
+    .modal-box input, .modal-box select {
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: 7px 9px; font-size: 13px; outline: none;
+    }
+    .modal-box input:focus, .modal-box select:focus { border-color: var(--focus); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <!-- 左侧导航 -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/>
+            <path d="M7.5 12h4M16.5 6.5 12 10.5M16.5 17.5 12 13.5"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-name">dsh Desktop</div>
+          <div class="brand-sub">DeepSeek Harness</div>
+        </div>
+        <button id="sidebar-toggle" class="icon-btn sidebar-toggle" title="收起侧边栏"></button>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-label">工作台</div>
+        <div class="nav-item active" data-pane="home" title="首页">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg>
+          <span class="nav-text">首页</span>
+        </div>
+        <div class="nav-item" data-pane="agents" title="Agent">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M7.5 12h4M16.5 6.5 12 10.5M16.5 17.5 12 13.5"/></svg>
+          <span class="nav-text">Agent</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-foot">
+        <span class="foot-text">v0.1.0 · 本地模式</span>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+      </div>
+    </aside>
+
+    <!-- 内容区 -->
+    <main class="main">
+      <!-- 首页：现有 dsh web 嵌套，不改动 -->
+      <div id="pane-home" class="pane">
+        <webview id="dsh-web" allowpopups></webview>
+      </div>
+
+      <!-- Agent：壳自建 -->
+      <div id="pane-agents" class="pane hidden">
+        <div class="page">
+          <div class="page-head">
+            <div>
+              <div class="page-title">Agent</div>
+              <div class="page-sub">管理 Agent 预设，编排插件组合。注意：Agent 在会话开始时固定 — 已开始的对话中途切换会被框架拒绝（界面上表现为选完跳回）；对新会话生效（在设置里选中即设为默认，新对话自动使用）。</div>
+            </div>
+            <button id="new-btn" class="btn primary">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              新建 Agent
+            </button>
+          </div>
+
+          <div id="agent-list" class="agent-list"></div>
+
+          <div id="empty-state" class="empty">
+            <div class="ring">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M7.5 12h4M16.5 6.5 12 10.5M16.5 17.5 12 13.5"/></svg>
+            </div>
+            <div class="t">还没有 Agent</div>
+            <div class="s">新建一个 Agent，或从 standard / minimal / code / cordis 出厂模板复制开始编排。</div>
+            <button id="empty-new-btn" class="btn primary">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              新建 Agent
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 新建 / 复制 modal -->
+  <div id="modal" class="hidden">
+    <div class="modal-box">
+      <h2 id="modal-title">新建 Agent</h2>
+      <label>ID（小写字母 / 数字 / 连字符）
+        <input id="create-id" placeholder="my-agent" />
+      </label>
+      <label>名称
+        <input id="create-name" placeholder="我的 Agent" />
+      </label>
+      <label>描述
+        <input id="create-desc" placeholder="一句话描述…" />
+      </label>
+      <label>从模板创建
+        <select id="create-template">
+          <option value="">空白</option>
+          <option value="standard">standard</option>
+          <option value="minimal">minimal</option>
+          <option value="code">code</option>
+          <option value="cordis">cordis</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button id="create-cancel" class="btn">取消</button>
+        <button id="create-confirm" class="btn primary">创建</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="shell.js"></script>
+</body>
+</html>

@@ -1,19 +1,13 @@
 import { Menu, shell } from 'electron'
 
 /** Standard macOS menu built from Electron roles — no coupling to the web UI DOM. */
-export function installMenu(openT2: () => void): void {
+export function installMenu(): void {
   const isMac = process.platform === 'darwin'
   const template: Electron.MenuItemConstructorOptions[] = [
     ...(isMac ? [{ role: 'appMenu' as const }] : []),
     { role: 'fileMenu' as const },
     { role: 'editMenu' as const },
     { role: 'viewMenu' as const },
-    {
-      label: '管理',
-      submenu: [
-        { label: '管理 Agent', accelerator: 'CmdOrCtrl+Shift+A', click: () => openT2() },
-      ],
-    },
     { role: 'windowMenu' as const },
     {
       role: 'help',

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>编排画布 — dsh Desktop</title>
+  <link rel="stylesheet" href="tokens.css" />
+  <link rel="stylesheet" href="canvas.css" />
+</head>
+<body>
+  <div class="editor">
+    <!-- 顶栏 -->
+    <div class="topbar">
+      <div class="back" id="back-btn" title="返回 Agent 列表">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
+      </div>
+      <input class="agent-name" id="agent-name" value="" />
+      <div class="save-state" id="save-state"><span class="dot on"></span>已保存</div>
+
+      <div class="spacer"></div>
+
+      <div class="actions">
+        <button id="copy-btn" class="btn" style="display:none">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          复制为我的 Agent
+        </button>
+        <button id="delete-btn" class="btn ghost danger" style="display:none">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V5h6v2"/></svg>
+          删除
+        </button>
+        <button id="save-btn" class="btn primary" style="display:none">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>
+          保存
+        </button>
+        <button id="verify-btn" class="btn" style="display:none" title="让运行中的 harness 真实挂载一次该组合，拿到框架自身的判定">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4M12 17.2v.3"/></svg>
+          验证
+        </button>
+      </div>
+    </div>
+
+    <!-- 主体 -->
+    <div class="editor-body">
+      <!-- 左侧节点库 -->
+      <aside class="palette">
+        <div class="palette-head">
+          <div class="palette-title">节点库</div>
+          <div class="palette-search">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="palette-search" type="text" placeholder="搜索节点…" />
+          </div>
+        </div>
+        <div class="palette-groups" id="palette-groups"></div>
+      </aside>
+
+      <!-- 中间画布 -->
+      <div class="canvas-wrap" id="canvas-wrap">
+        <div class="canvas-scroll" id="canvas-scroll">
+          <div class="canvas" id="canvas"></div>
+        </div>
+        <div class="canvas-tools" id="canvas-tools">
+          <button id="fit-btn">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+            适应视图
+          </button>
+          <span class="wire-hint">从节点右侧 ● 拖到目标节点上松开即连线（上下游依赖）</span>
+        </div>
+      </div>
+
+      <!-- 右侧 inspector -->
+      <aside class="inspector">
+        <div class="insp-head">
+          <span class="dot on" id="insp-dot"></span>
+          节点配置
+        </div>
+        <div id="readonly-banner" class="readonly-banner" style="display:none">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2.5 20h19z"/><path d="M12 10v4M12 17.5v.5"/></svg>
+          <span>出厂预设只读，复制为我的 Agent 后再编辑。</span>
+        </div>
+        <div class="insp-body" id="insp-body">
+          <div class="insp-empty" id="insp-empty">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+            <div class="s">点击画布上的节点进行配置</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="canvas.js"></script>
+</body>
+</html>

@@ -8,7 +8,7 @@ import { setPendingBadge, showNotification } from './native'
 import { registerDeepLink } from './deep-link'
 import { initUpdater } from './updater'
 import { installDockIcon } from './icon'
-import { createT2Window } from './t2/window'
+import { createCanvasWindow } from './t2/window'
 import { registerT2Ipc } from './t2/ipc'
 
 // Redirect console output to a file first: a double-click launch has no
@@ -19,16 +19,22 @@ let host: HostProcess | null = null
 let mainWindow: BrowserWindow | null = null
 let monitor: HostStateMonitor | null = null
 let quitting = false
-let t2Window: BrowserWindow | null = null
+let canvasWindow: BrowserWindow | null = null
+let hostUrl: string | null = null
 
-function openT2(): void {
-  if (t2Window !== null && !t2Window.isDestroyed()) {
-    t2Window.focus()
+/** The loopback dsh web origin, for main-process RPC calls (mount dry-run). */
+function getHostUrl(): string | null {
+  return hostUrl
+}
+
+function openCanvas(id: string): void {
+  if (canvasWindow !== null && !canvasWindow.isDestroyed()) {
+    canvasWindow.focus()
     return
   }
-  t2Window = createT2Window()
-  t2Window.on('closed', () => {
-    t2Window = null
+  canvasWindow = createCanvasWindow(id)
+  canvasWindow.on('closed', () => {
+    canvasWindow = null
   })
 }
 
@@ -37,6 +43,7 @@ async function boot(): Promise<void> {
     const h = new HostProcess()
     host = h
     const url = await h.start(app.isPackaged)
+    hostUrl = url
 
     mainWindow = createMainWindow(url)
     mainWindow.on('closed', () => {
@@ -57,9 +64,12 @@ async function boot(): Promise<void> {
 
 app.whenReady().then(() => {
   installDockIcon()
-  registerT2Ipc()
-  installMenu(openT2)
-  if (process.env.DSH_OPEN_T2 === '1') openT2()
+  registerT2Ipc(openCanvas, getHostUrl)
+  installMenu()
+
+  // Dev/test hook: open the canvas for a preset id without clicking through
+  // the sidebar (DSH_OPEN_CANVAS=<preset-id>).
+  if (process.env.DSH_OPEN_CANVAS !== undefined) openCanvas(process.env.DSH_OPEN_CANVAS)
 
   registerDeepLink(() => {
     if (mainWindow !== null) {
