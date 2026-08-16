@@ -1,4 +1,4 @@
-# dsh-desktop
+# Open-DeepSeek-Harness-Desktop
 
 An open-source macOS desktop app for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`) — a Codex / Claude Code desktop counterpart built on top of the harness, with no fork of the upstream kernel.
 
