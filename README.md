@@ -4,6 +4,10 @@ An open-source macOS desktop app for [DeepSeek Harness](https://github.com/deeps
 
 It wraps the harness's Web UI in a native window: chat with the agent, let it read/write files, run commands, use a terminal, and handle approvals — all locally, no browser tab, no cloud account.
 
+<p align="center">
+  <img src="docs/images/desktop-screenshot-en.png" alt="dsh-desktop: chat, workspace, and model settings in a native window" width="800">
+</p>
+
 > **Status**: early developer preview. The upstream harness (`dsh`) is also a developer preview and iterates fast; pin the `@deepseek-ai/dsh` version and upgrade explicitly.
 
 ## Features
@@ -13,6 +17,14 @@ It wraps the harness's Web UI in a native window: chat with the agent, let it re
 - **Key self-management**: the desktop app does **not** inherit `DEEPSEEK_API_KEY` from your shell environment — the key comes only from what you enter in the app (Settings → Models).
 - **Native extras**: macOS menu, Dock badge + notifications for pending approvals/questions, `dsh-desktop://` deep link, auto-update (packaged builds).
 - **Follows upstream, never forks**: `dsh` is used as a dependency; update `@deepseek-ai/dsh` to track upstream releases.
+
+## The orchestration canvas
+
+The plugin orchestration engine ships with a visual canvas: pick nodes (skills, tools, event hooks) from the library, wire them into a flow on the canvas, and configure each node in the inspector. The compiled flow becomes a reusable agent preset.
+
+<p align="center">
+  <img src="docs/images/canvas-editor-preview.png" alt="Plugin orchestration canvas: node library, canvas graph, and node inspector" width="800">
+</p>
 
 ## Run (development)
 
