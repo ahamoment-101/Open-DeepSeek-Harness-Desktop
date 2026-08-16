@@ -1,5 +1,7 @@
 # Open-DeepSeek-Harness-Desktop
 
+English | [简体中文](README.zh-CN.md)
+
 An open-source macOS desktop app for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`) — a Codex / Claude Code desktop counterpart built on top of the harness, with no fork of the upstream kernel.
 
 It wraps the harness's Web UI in a native window: chat with the agent, let it read/write files, run commands, use a terminal, and handle approvals — all locally, no browser tab, no cloud account.
