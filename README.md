@@ -7,7 +7,7 @@ An open-source macOS desktop app for [DeepSeek Harness](https://github.com/deeps
 It wraps the harness's Web UI in a native window: chat with the agent, let it read/write files, run commands, use a terminal, and handle approvals — all locally, no browser tab, no cloud account.
 
 <p align="center">
-  <img src="docs/images/desktop-screenshot-en.png?v=2" alt="dsh-desktop: chat, workspace, and model settings in a native window" width="800">
+  <img src="docs/images/desktop-screenshot-v2.png" alt="dsh-desktop: chat, workspace, and model settings in a native window" width="800">
 </p>
 
 > **Status**: early developer preview. The upstream harness (`dsh`) is also a developer preview and iterates fast; pin the `@deepseek-ai/dsh` version and upgrade explicitly.

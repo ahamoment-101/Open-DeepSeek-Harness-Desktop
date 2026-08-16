@@ -7,7 +7,7 @@
 它把 harness 的 Web UI 包装进原生窗口：与 agent 对话、让它读写文件、执行命令、使用终端、处理审批——全部在本地完成，无需浏览器标签页，无需云端账号。
 
 <p align="center">
-  <img src="docs/images/desktop-screenshot-en.png?v=2" alt="dsh-desktop：原生窗口中的对话、工作区与模型设置" width="800">
+  <img src="docs/images/desktop-screenshot-v2.png" alt="dsh-desktop：原生窗口中的对话、工作区与模型设置" width="800">
 </p>
 
 > **状态**：早期开发者预览。上游 harness（`dsh`）同样处于开发者预览阶段、迭代很快；建议锁定 `@deepseek-ai/dsh` 版本，显式升级。
