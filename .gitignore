@@ -13,3 +13,8 @@ release/
 .env
 .env.*
 !*.env.example
+
+# ── keep local-only docs / site out of git ──
+website/
+T2-DESIGN.md
+KNOWHOW.md
